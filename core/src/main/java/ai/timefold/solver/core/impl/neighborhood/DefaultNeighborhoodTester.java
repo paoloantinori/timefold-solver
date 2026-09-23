@@ -2,6 +2,7 @@ package ai.timefold.solver.core.impl.neighborhood;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.DefaultPlanningSolutionMetaModel;
@@ -28,8 +29,15 @@ public final class DefaultNeighborhoodTester<Solution_>
 
     public DefaultNeighborhoodTester(MoveProvider<Solution_> moveProvider,
             PlanningSolutionMetaModel<Solution_> solutionMetaModel) {
+        this(moveProvider, solutionMetaModel, UnaryOperator.identity());
+    }
+
+    public DefaultNeighborhoodTester(MoveProvider<Solution_> moveProvider,
+            PlanningSolutionMetaModel<Solution_> solutionMetaModel,
+            UnaryOperator<MoveTester<Solution_>> moveTesterConfigurator) {
         this.moveProvider = Objects.requireNonNull(moveProvider, "moveProvider");
-        this.moveTester = MoveTester.build(Objects.requireNonNull(solutionMetaModel, "solutionMetaModel"));
+        this.moveTester = Objects.requireNonNull(moveTesterConfigurator, "moveTesterConfigurator")
+                .apply(MoveTester.build(Objects.requireNonNull(solutionMetaModel, "solutionMetaModel")));
         var solutionDescriptor = ((DefaultPlanningSolutionMetaModel<Solution_>) solutionMetaModel).solutionDescriptor();
         this.moveStreamFactory = new DefaultMoveStreamFactory<>(solutionDescriptor, EnvironmentMode.FULL_ASSERT);
     }

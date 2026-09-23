@@ -28,19 +28,33 @@ import org.jspecify.annotations.NullMarked;
  * <p>
  * MOTIVATION. Move selectors enumerate static entity/value lists for performance;
  * violation-directed selection costs a constraint-match lookup per proposal instead.
- * On a small hard residual at the end of solving, that trade is worth making:
- * a production finisher built on this exact selection shape
- * (score with constraint matches enabled, targets = entities of hard-negative matches,
- * change/swap only around targets, steepest descent with incremental move evaluation
- * at roughly 0.05 ms per evaluation) closes hard residuals that plain local search leaves open,
- * because over the full move grammar no single improving move exists until the search
- * starts from the wound itself.
+ * On a small hard residual at the end of solving, that trade can be worth making,
+ * because over the full move grammar no single improving move may exist until the search
+ * starts from the wound itself. The selection shape implemented here (score with constraint
+ * matches enabled, targets = entities of hard-negative matches, change/swap only around
+ * targets, steepest descent with incremental move evaluation at roughly 0.05 ms per
+ * evaluation) was measured in a separate production system, where it closes hard residuals
+ * that plain local search leaves open; those numbers do not come from this PoC, which has
+ * never been benchmarked and demonstrates the selection only.
  *
  * <p>
- * REQUIREMENTS. The score director must run with constraint matches
- * and justifications enabled ({@code ConstraintMatchPolicy.ENABLED}); move selection fails
- * fast with {@link IllegalStateException} otherwise. Only fact-bearing justifications
- * (the default) contribute targets; constraints with a custom justification mapping are skipped.
+ * REQUIREMENTS. Move selection requires the constraint match policy
+ * {@code ConstraintMatchPolicy.ENABLED} and fails fast with {@link IllegalStateException}
+ * otherwise. On open-source builds the policy becomes ENABLED in either of these ways
+ * (see {@code ScoreDirectorFactoryFactory.decideConstraintMatchPolicy}):
+ * <ul>
+ * <li>registering a constraint-match-based monitoring metric, namely
+ * {@code SolverMetric.CONSTRAINT_MATCH_TOTAL_STEP_SCORE} or
+ * {@code SolverMetric.CONSTRAINT_MATCH_TOTAL_BEST_SCORE}, through {@code MonitoringConfig}; or</li>
+ * <li>running the solver with an environment mode of {@code EnvironmentMode.STEP_ASSERT}
+ * or stricter.</li>
+ * </ul>
+ * Programmatically, a score director built through
+ * {@code AbstractScoreDirector.AbstractScoreDirectorBuilder} can also request the policy
+ * directly with {@code withConstraintMatchPolicy(ConstraintMatchPolicy.ENABLED)}
+ * (the move testers expose the same knob via {@code MoveTester.withConstraintMatchPolicy}).
+ * Only fact-bearing justifications (the default) contribute targets; constraints with a
+ * custom justification mapping are skipped.
  *
  * <p>
  * KNOWN LIMITS OF THIS PROOF OF CONCEPT.

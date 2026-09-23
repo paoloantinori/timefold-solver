@@ -1,6 +1,8 @@
 package ai.timefold.solver.core.preview.api.move.test;
 
+import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.impl.move.DefaultMoveTester;
+import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.preview.api.domain.metamodel.PlanningSolutionMetaModel;
 import ai.timefold.solver.core.preview.api.move.Move;
 
@@ -60,6 +62,35 @@ public interface MoveTester<Solution_> {
     static <Solution_> MoveTester<Solution_> build(PlanningSolutionMetaModel<Solution_> solutionMetaModel) {
         return new DefaultMoveTester<>(solutionMetaModel);
     }
+
+    /**
+     * Like {@link #build(PlanningSolutionMetaModel)}, but the score director actually calculates
+     * the score with the given {@link ConstraintProvider} instead of stubbing it out.
+     * Use this to test move implementations that read the score, such as constraint-match-based
+     * move selection.
+     *
+     * @param solutionMetaModel the planning solution class;
+     *        use {@link PlanningSolutionMetaModel#of(Class, Class[])} to build one.
+     * @param constraintProvider the constraint provider to score solutions with
+     * @param <Solution_> the planning solution type
+     * @return a new instance
+     */
+    static <Solution_> MoveTester<Solution_> build(PlanningSolutionMetaModel<Solution_> solutionMetaModel,
+            ConstraintProvider constraintProvider) {
+        return new DefaultMoveTester<>(solutionMetaModel, constraintProvider);
+    }
+
+    /**
+     * Sets the {@link ConstraintMatchPolicy} of the score directors this tester creates.
+     * <p>
+     * By default the tester builds score directors with {@link ConstraintMatchPolicy#DISABLED};
+     * move implementations that require constraint matches, such as the violation-scoped
+     * move providers, need {@link ConstraintMatchPolicy#ENABLED} and will fail fast otherwise.
+     *
+     * @param constraintMatchPolicy never null
+     * @return this tester, for fluency
+     */
+    MoveTester<Solution_> withConstraintMatchPolicy(ConstraintMatchPolicy constraintMatchPolicy);
 
     /**
      * Creates an execution context for the given solution instance.

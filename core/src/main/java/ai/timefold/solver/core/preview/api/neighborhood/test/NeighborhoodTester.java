@@ -1,7 +1,10 @@
 package ai.timefold.solver.core.preview.api.neighborhood.test;
 
+import java.util.function.UnaryOperator;
+
 import ai.timefold.solver.core.impl.neighborhood.DefaultNeighborhoodTester;
 import ai.timefold.solver.core.preview.api.domain.metamodel.PlanningSolutionMetaModel;
+import ai.timefold.solver.core.preview.api.move.test.MoveTester;
 import ai.timefold.solver.core.preview.api.neighborhood.MoveProvider;
 
 import org.jspecify.annotations.NullMarked;
@@ -49,6 +52,25 @@ public interface NeighborhoodTester<Solution_> {
     static <Solution_> NeighborhoodTester<Solution_> build(MoveProvider<Solution_> moveProvider,
             PlanningSolutionMetaModel<Solution_> solutionMetaModel) {
         return new DefaultNeighborhoodTester<>(moveProvider, solutionMetaModel);
+    }
+
+    /**
+     * Like {@link #build(MoveProvider, PlanningSolutionMetaModel)}, but allows customizing the
+     * underlying {@link MoveTester}, for example to score solutions with a real
+     * {@link ai.timefold.solver.core.api.score.stream.ConstraintProvider} and enable
+     * constraint matches, which constraint-match-based move providers need.
+     *
+     * @param moveProvider the move provider to generate moves
+     * @param solutionMetaModel the planning solution meta-model;
+     *        use {@link PlanningSolutionMetaModel#of(Class, Class[])} to build one.
+     * @param moveTesterConfigurator customizes the underlying {@link MoveTester}
+     * @param <Solution_> the planning solution type
+     * @return a new instance
+     */
+    static <Solution_> NeighborhoodTester<Solution_> build(MoveProvider<Solution_> moveProvider,
+            PlanningSolutionMetaModel<Solution_> solutionMetaModel,
+            UnaryOperator<MoveTester<Solution_>> moveTesterConfigurator) {
+        return new DefaultNeighborhoodTester<>(moveProvider, solutionMetaModel, moveTesterConfigurator);
     }
 
     /**

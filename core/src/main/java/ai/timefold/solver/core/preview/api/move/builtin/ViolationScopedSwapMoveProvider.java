@@ -40,10 +40,23 @@ import org.jspecify.annotations.NullMarked;
  * The wound supplies the direction, the partner supplies the movement.
  *
  * <p>
- * REQUIREMENTS. The score director must run with constraint matches
- * and justifications enabled ({@code ConstraintMatchPolicy.ENABLED}); move selection fails
- * fast with {@link IllegalStateException} otherwise. Only fact-bearing justifications
- * (the default) contribute targets; constraints with a custom justification mapping are skipped.
+ * REQUIREMENTS. Move selection requires the constraint match policy
+ * {@code ConstraintMatchPolicy.ENABLED} and fails fast with {@link IllegalStateException}
+ * otherwise. On open-source builds the policy becomes ENABLED in either of these ways
+ * (see {@code ScoreDirectorFactoryFactory.decideConstraintMatchPolicy}):
+ * <ul>
+ * <li>registering a constraint-match-based monitoring metric, namely
+ * {@code SolverMetric.CONSTRAINT_MATCH_TOTAL_STEP_SCORE} or
+ * {@code SolverMetric.CONSTRAINT_MATCH_TOTAL_BEST_SCORE}, through {@code MonitoringConfig}; or</li>
+ * <li>running the solver with an environment mode of {@code EnvironmentMode.STEP_ASSERT}
+ * or stricter.</li>
+ * </ul>
+ * Programmatically, a score director built through
+ * {@code AbstractScoreDirector.AbstractScoreDirectorBuilder} can also request the policy
+ * directly with {@code withConstraintMatchPolicy(ConstraintMatchPolicy.ENABLED)}
+ * (the move testers expose the same knob via {@code MoveTester.withConstraintMatchPolicy}).
+ * Only fact-bearing justifications (the default) contribute targets; constraints with a
+ * custom justification mapping are skipped.
  *
  * <p>
  * KNOWN LIMITS OF THIS PROOF OF CONCEPT.

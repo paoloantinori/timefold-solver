@@ -56,7 +56,15 @@ public final class ViolationScopedMoveSupport {
      * @param solutionView never null; must be the solver's internal view of the working solution
      * @return never null; identity-semantics set, possibly empty when the solution has no hard-negative matches
      * @throws IllegalStateException when the score director does not run with
-     *         {@link ConstraintMatchPolicy#ENABLED}, or when the view does not reach a score director
+     *         {@link ConstraintMatchPolicy#ENABLED}, or when the view does not reach a score director.
+     *         On open-source builds ENABLED is reached by registering a constraint-match-based
+     *         monitoring metric ({@code SolverMetric.CONSTRAINT_MATCH_TOTAL_STEP_SCORE} or
+     *         {@code CONSTRAINT_MATCH_TOTAL_BEST_SCORE} via {@code MonitoringConfig}), by running
+     *         with an environment mode of {@code EnvironmentMode.STEP_ASSERT} or stricter
+     *         (both routes via {@code ScoreDirectorFactoryFactory.decideConstraintMatchPolicy}),
+     *         or programmatically through
+     *         {@code AbstractScoreDirector.AbstractScoreDirectorBuilder.withConstraintMatchPolicy}
+     *         (the move testers expose the same knob via {@code MoveTester.withConstraintMatchPolicy})
      */
     public static <Solution_> Set<Object> findHardNegativeMatchFacts(SolutionView<Solution_> solutionView) {
         if (!(solutionView instanceof InnerMutableSolutionView<Solution_> innerView)) {
